@@ -23,3 +23,6 @@ go.work.sum
 
 # ignore executable files
 out
+
+# misc assets
+misc
