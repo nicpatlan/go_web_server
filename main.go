@@ -5,8 +5,9 @@ import (
 )
 
 func main() {
-	// create server handler
+	// create server mux and handler
 	serveMux := http.NewServeMux()
+	serveMux.Handle("/", http.FileServer(http.Dir(".")))
 
 	// create server on localhost port 8080
 	server := http.Server{
