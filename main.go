@@ -13,6 +13,7 @@ func main() {
 	const healthzPattern = "GET /api/healthz"
 	const metricPattern = "GET /admin/metrics"
 	const resetPattern = "/api/reset"
+	const postPattern = "POST /api/validate_post"
 	const port = "8080"
 
 	// create server mux handler and fileHits counter
@@ -24,6 +25,7 @@ func main() {
 	serveMux.Handle(healthzPattern, healthzHandler{})
 	serveMux.Handle(metricPattern, fHits.GetHitsHandler())
 	serveMux.Handle(resetPattern, fHits.GetResetHandler())
+	serveMux.Handle(postPattern, PostHandler{})
 
 	// create server on localhost port 8080
 	server := &http.Server{
