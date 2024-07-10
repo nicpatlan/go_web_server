@@ -1,46 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
-
-type healthzHandler struct{}
-
-func (healthzHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
-	wr.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	wr.WriteHeader(http.StatusOK)
-	wr.Write([]byte("OK"))
-}
-
-type fileHits struct {
-	fileserverHits int
-}
-
-func (f *fileHits) incrFileHits(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-		f.fileserverHits++
-		handler.ServeHTTP(wr, req)
-	})
-}
-
-func (f *fileHits) GetHitsHandler() http.Handler {
-	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-		wr.Header().Set("Content-Type", "text/html; charset=utf-8")
-		wr.WriteHeader(http.StatusOK)
-		wr.Write([]byte("<html>\n<body>\n\t<h1>Welcome, Admin</h1>\n"))
-		wr.Write([]byte(fmt.Sprintf("\t<p>Server has been visited %d times!</p>\n", f.fileserverHits)))
-		wr.Write([]byte("</body>\n</html>"))
-	})
-}
-
-func (f *fileHits) GetResetHandler() http.Handler {
-	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-		f.fileserverHits = 0
-		wr.WriteHeader(http.StatusOK)
-	})
-}
 
 func main() {
 	// constants
@@ -54,10 +17,10 @@ func main() {
 
 	// create server mux handler and fileHits counter
 	serveMux := http.NewServeMux()
-	fHits := fileHits{}
+	fHits := FileHits{}
 
 	// add handlers
-	serveMux.Handle(filePattern, fHits.incrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
+	serveMux.Handle(filePattern, fHits.IncrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
 	serveMux.Handle(healthzPattern, healthzHandler{})
 	serveMux.Handle(metricPattern, fHits.GetHitsHandler())
 	serveMux.Handle(resetPattern, fHits.GetResetHandler())
