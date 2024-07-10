@@ -9,10 +9,6 @@ import (
 type healthzHandler struct{}
 
 func (healthzHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
-	if req.URL.Path != "/healthz" {
-		http.NotFound(wr, req)
-		return
-	}
 	wr.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	wr.WriteHeader(http.StatusOK)
 	wr.Write([]byte("OK"))
@@ -29,24 +25,18 @@ func (f *fileHits) incrFileHits(handler http.Handler) http.Handler {
 	})
 }
 
-func (f *fileHits) GetHitsHandler(path string) http.Handler {
+func (f *fileHits) GetHitsHandler() http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-		if req.URL.Path != path {
-			http.NotFound(wr, req)
-			return
-		}
-		wr.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		wr.Header().Set("Content-Type", "text/html; charset=utf-8")
 		wr.WriteHeader(http.StatusOK)
-		wr.Write([]byte(fmt.Sprintf("Hits: %d", f.fileserverHits)))
+		wr.Write([]byte("<html>\n<body>\n\t<h1>Welcome, Admin</h1>\n"))
+		wr.Write([]byte(fmt.Sprintf("\t<p>Server has been visited %d times!</p>\n", f.fileserverHits)))
+		wr.Write([]byte("</body>\n</html>"))
 	})
 }
 
-func (f *fileHits) GetResetHandler(path string) http.Handler {
+func (f *fileHits) GetResetHandler() http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-		if req.URL.Path != path {
-			http.NotFound(wr, req)
-			return
-		}
 		f.fileserverHits = 0
 		wr.WriteHeader(http.StatusOK)
 	})
@@ -57,9 +47,9 @@ func main() {
 	const filePattern = "/app/*"
 	const fileStrip = "/app"
 	const fileRoot = "."
-	const healthzPattern = "/healthz"
-	const metricPattern = "/metrics"
-	const resetPattern = "/reset"
+	const healthzPattern = "GET /api/healthz"
+	const metricPattern = "GET /admin/metrics"
+	const resetPattern = "/api/reset"
 	const port = "8080"
 
 	// create server mux handler and fileHits counter
@@ -69,8 +59,8 @@ func main() {
 	// add handlers
 	serveMux.Handle(filePattern, fHits.incrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
 	serveMux.Handle(healthzPattern, healthzHandler{})
-	serveMux.Handle(metricPattern, fHits.GetHitsHandler(metricPattern))
-	serveMux.Handle(resetPattern, fHits.GetResetHandler(resetPattern))
+	serveMux.Handle(metricPattern, fHits.GetHitsHandler())
+	serveMux.Handle(resetPattern, fHits.GetResetHandler())
 
 	// create server on localhost port 8080
 	server := &http.Server{
