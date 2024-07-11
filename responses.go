@@ -28,13 +28,7 @@ func respondWithError(wr http.ResponseWriter, statusCode int, msg string) {
 }
 
 func respondWithJSON(wr http.ResponseWriter, statusCode int, payload interface{}) {
-	type validPost struct {
-		Body interface{} `json:"cleaned_body"`
-	}
-	resBody := validPost{
-		Body: payload,
-	}
-	validRes, err := json.Marshal(resBody)
+	validRes, err := json.Marshal(payload)
 	if err != nil {
 		respondMarshallError(wr, err.Error())
 		return

@@ -2,12 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+
+	"github.com/nicpatlan/go_web_server/internal/database"
 )
 
-type PostHandler struct{}
+type PostHandler struct {
+	Database *database.DB
+}
 
-func (PostHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
+func (ph PostHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 	type post struct {
 		Body string `json:"body"`
 	}
@@ -26,5 +31,10 @@ func (PostHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 		return
 	}
 	newPost.Body = cleanPost(newPost.Body)
-	respondWithJSON(wr, http.StatusOK, newPost.Body)
+	p, err := ph.Database.CreatePost(newPost.Body)
+	if err != nil {
+		log.Printf("Error creating post: %s", err)
+		return
+	}
+	respondWithJSON(wr, http.StatusCreated, p)
 }
