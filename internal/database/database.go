@@ -19,6 +19,7 @@ func NewDB(path string) (*DB, error) {
 		path:   path,
 		mu:     &mu,
 		postID: 1,
+		userID: 1,
 	}
 	return &database, database.ensureDB()
 }
@@ -28,14 +29,47 @@ type Post struct {
 	Body string `json:"body"`
 }
 
+type User struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+}
+
 type DBStructure struct {
 	Posts map[int]Post `json:"posts"`
+	Users map[int]User `json:"users"`
 }
 
 type DB struct {
 	path   string
 	mu     *sync.RWMutex
 	postID int
+	userID int
+}
+
+func (db *DB) CreateUser(email string) (User, error) {
+	user := User{
+		ID:    db.userID,
+		Email: email,
+	}
+	var dbStruct DBStructure
+	var err error
+	if db.userID != 1 {
+		dbStruct, err = db.loadDB()
+		if err != nil {
+			return user, err
+		}
+	} else {
+		dbStruct = DBStructure{
+			Users: make(map[int]User),
+		}
+	}
+	dbStruct.Users[db.userID] = user
+	err = db.writeDB(dbStruct)
+	if err != nil {
+		return user, err
+	}
+	db.userID++
+	return user, nil
 }
 
 func (db *DB) CreatePost(body string) (Post, error) {
@@ -48,7 +82,7 @@ func (db *DB) CreatePost(body string) (Post, error) {
 	if post.ID != 1 {
 		dbStruct, err = db.loadDB()
 		if err != nil {
-			return Post{}, err
+			return post, err
 		}
 	} else {
 		dbStruct = DBStructure{
@@ -58,7 +92,7 @@ func (db *DB) CreatePost(body string) (Post, error) {
 	dbStruct.Posts[database.postID] = post
 	err = db.writeDB(dbStruct)
 	if err != nil {
-		return Post{}, err
+		return post, err
 	}
 	db.postID++
 	return post, nil

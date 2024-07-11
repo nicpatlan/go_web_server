@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -32,7 +31,7 @@ func (aCfg *ApiConfig) PostHandlerFunc(wr http.ResponseWriter, req *http.Request
 	newPost.Body = cleanPost(newPost.Body)
 	p, err := aCfg.database.CreatePost(newPost.Body)
 	if err != nil {
-		log.Printf("Error creating post: %s", err)
+		respondWithError(wr, http.StatusInternalServerError, "Error creating post")
 		return
 	}
 	respondWithJSON(wr, http.StatusCreated, p)
