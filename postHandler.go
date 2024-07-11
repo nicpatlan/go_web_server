@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	"github.com/nicpatlan/go_web_server/internal/database"
 )
 
-type PostHandler struct {
-	Database *database.DB
+type Post struct {
+	ID   int    `json:"id"`
+	Body string `json:"body"`
 }
 
-func (ph PostHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
+func (aCfg *ApiConfig) PostHandlerFunc(wr http.ResponseWriter, req *http.Request) {
 	type post struct {
 		Body string `json:"body"`
 	}
@@ -31,7 +30,7 @@ func (ph PostHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 		return
 	}
 	newPost.Body = cleanPost(newPost.Body)
-	p, err := ph.Database.CreatePost(newPost.Body)
+	p, err := aCfg.database.CreatePost(newPost.Body)
 	if err != nil {
 		log.Printf("Error creating post: %s", err)
 		return

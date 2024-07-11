@@ -2,18 +2,12 @@ package main
 
 import (
 	"net/http"
-
-	"github.com/nicpatlan/go_web_server/internal/database"
 )
 
-type GetHandler struct {
-	Database *database.DB
-}
-
-func (gh GetHandler) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
-	posts, err := gh.Database.GetPosts()
+func (aCfg *ApiConfig) GetPostsHandlerFunc(wr http.ResponseWriter, req *http.Request) {
+	posts, err := aCfg.database.GetPosts()
 	if err != nil {
-		respondWithJSON(wr, http.StatusOK, database.Post{})
+		respondWithJSON(wr, http.StatusOK, Post{})
 		return
 	}
 	respondWithJSON(wr, http.StatusOK, posts)

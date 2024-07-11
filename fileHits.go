@@ -5,18 +5,14 @@ import (
 	"net/http"
 )
 
-type FileHits struct {
-	fileserverHits int
-}
-
-func (f *FileHits) IncrFileHits(handler http.Handler) http.Handler {
+func (f *ApiConfig) IncrFileHits(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
 		f.fileserverHits++
 		handler.ServeHTTP(wr, req)
 	})
 }
 
-func (f *FileHits) GetHitsHandler() http.Handler {
+func (f *ApiConfig) GetHitsHandler() http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
 		wr.Header().Set("Content-Type", "text/html; charset=utf-8")
 		wr.WriteHeader(http.StatusOK)
@@ -26,7 +22,7 @@ func (f *FileHits) GetHitsHandler() http.Handler {
 	})
 }
 
-func (f *FileHits) GetResetHandler() http.Handler {
+func (f *ApiConfig) GetResetHandler() http.Handler {
 	return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
 		f.fileserverHits = 0
 		wr.WriteHeader(http.StatusOK)

@@ -7,6 +7,11 @@ import (
 	"github.com/nicpatlan/go_web_server/internal/database"
 )
 
+type ApiConfig struct {
+	fileserverHits int
+	database       *database.DB
+}
+
 func main() {
 	// constants
 	const filePattern = "/app/*"
@@ -29,15 +34,15 @@ func main() {
 
 	// create server mux handler and fileHits counter
 	serveMux := http.NewServeMux()
-	fHits := FileHits{}
+	aCfg := ApiConfig{fileserverHits: 0, database: db}
 
 	// add handler
-	serveMux.Handle(filePattern, fHits.IncrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
+	serveMux.Handle(filePattern, aCfg.IncrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
 	serveMux.Handle(healthzPattern, healthzHandler{})
-	serveMux.Handle(metricPattern, fHits.GetHitsHandler())
-	serveMux.Handle(resetPattern, fHits.GetResetHandler())
-	serveMux.Handle(postPattern, PostHandler{Database: db})
-	serveMux.Handle(getPattern, GetHandler{Database: db})
+	serveMux.Handle(metricPattern, aCfg.GetHitsHandler())
+	serveMux.Handle(resetPattern, aCfg.GetResetHandler())
+	serveMux.HandleFunc(postPattern, aCfg.PostHandlerFunc)
+	serveMux.HandleFunc(getPattern, aCfg.GetPostsHandlerFunc)
 
 	// create server on localhost port 8080
 	server := &http.Server{
