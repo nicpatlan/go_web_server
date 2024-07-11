@@ -7,7 +7,7 @@ import (
 func (aCfg *ApiConfig) GetPostsHandlerFunc(wr http.ResponseWriter, req *http.Request) {
 	posts, err := aCfg.database.GetPosts()
 	if err != nil {
-		respondWithJSON(wr, http.StatusOK, Post{})
+		respondWithError(wr, http.StatusNotFound, "No posts to retrieve")
 		return
 	}
 	respondWithJSON(wr, http.StatusOK, posts)

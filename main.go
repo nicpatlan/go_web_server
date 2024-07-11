@@ -22,6 +22,7 @@ func main() {
 	const resetPattern = "/api/reset"
 	const postPattern = "POST /api/posts"
 	const getPattern = "GET /api/posts"
+	const getOnePattern = "GET /api/posts/{id}"
 	const port = "8080"
 	const dbPath = "database.json"
 
@@ -43,6 +44,7 @@ func main() {
 	serveMux.Handle(resetPattern, aCfg.GetResetHandler())
 	serveMux.HandleFunc(postPattern, aCfg.PostHandlerFunc)
 	serveMux.HandleFunc(getPattern, aCfg.GetPostsHandlerFunc)
+	serveMux.HandleFunc(getOnePattern, aCfg.GetOnePostHandlerFunc)
 
 	// create server on localhost port 8080
 	server := &http.Server{
