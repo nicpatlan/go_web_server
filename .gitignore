@@ -26,3 +26,6 @@ out
 
 # misc assets
 misc
+
+# database file
+database.json
