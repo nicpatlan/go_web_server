@@ -29,3 +29,6 @@ misc
 
 # database file
 database.json
+
+# environment file
+.env

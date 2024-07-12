@@ -3,16 +3,23 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/nicpatlan/go_web_server/internal/database"
 )
 
 type ApiConfig struct {
 	fileserverHits int
 	database       *database.DB
+	jwtsecret      string
 }
 
 func main() {
+	// load environment
+	godotenv.Load()
+	jwtsecret := os.Getenv("JWT_SECRET")
+
 	// constants
 	const filePattern = "/app/*"
 	const fileStrip = "/app"
@@ -37,7 +44,11 @@ func main() {
 
 	// create server mux handler and fileHits counter
 	serveMux := http.NewServeMux()
-	aCfg := ApiConfig{fileserverHits: 0, database: db}
+	aCfg := ApiConfig{
+		fileserverHits: 0,
+		database:       db,
+		jwtsecret:      jwtsecret,
+	}
 
 	// add handler
 	serveMux.Handle(filePattern, aCfg.IncrFileHits(http.StripPrefix(fileStrip, http.FileServer(http.Dir(fileRoot)))))
