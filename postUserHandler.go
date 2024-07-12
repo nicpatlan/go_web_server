@@ -5,23 +5,29 @@ import (
 	"net/http"
 )
 
-func (aCfg *ApiConfig) CreateUserHandlerFunc(wr http.ResponseWriter, req *http.Request) {
-	type email struct {
-		Body string `json:"email"`
-	}
+type UserRequest struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
 
+func (aCfg *ApiConfig) CreateUserHandlerFunc(wr http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
-	newUser := email{}
+	newUser := UserRequest{}
 	err := decoder.Decode(&newUser)
 	if err != nil {
 		respondMarshallError(wr, err.Error())
 		return
 	}
+
 	wr.Header().Set("Content-Type", "application/json")
-	p, err := aCfg.database.CreateUser(newUser.Body)
+	resp, err := aCfg.database.CreateUser(newUser.Email, newUser.Password)
 	if err != nil {
+		if err.Error() == "duplicate email" {
+			respondWithError(wr, http.StatusBadRequest, err.Error())
+			return
+		}
 		respondWithError(wr, http.StatusInternalServerError, "Error creating user")
 		return
 	}
-	respondWithJSON(wr, http.StatusCreated, p)
+	respondWithJSON(wr, http.StatusCreated, resp)
 }
