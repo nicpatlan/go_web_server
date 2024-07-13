@@ -8,6 +8,7 @@ import (
 type UserRequest struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
+	Expires  int    `json:"expires_in_seconds"`
 }
 
 func (aCfg *ApiConfig) CreateUserHandlerFunc(wr http.ResponseWriter, req *http.Request) {

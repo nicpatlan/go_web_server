@@ -3,8 +3,6 @@ package database
 import (
 	"errors"
 	"log"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -18,12 +16,18 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
+type TokenResponse struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+	Token string `json:"token"`
+}
+
 func (db *DB) CreateUser(email, password string) (UserResponse, error) {
 	userResponse := UserResponse{
 		ID:    db.userID,
 		Email: email,
 	}
-	hashedPass, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPass, e := HashPassword(password)
 	if e != nil {
 		log.Printf("Error generating hashed password: %s", e)
 		return userResponse, e
@@ -60,23 +64,50 @@ func (db *DB) CreateUser(email, password string) (UserResponse, error) {
 	return userResponse, nil
 }
 
-func (db *DB) ValidateUserPassword(email, password string) (UserResponse, error) {
+func (db *DB) ValidateUserPassword(email, password string) (TokenResponse, error) {
+	tokenResponse := TokenResponse{}
+	if db.userID != 1 {
+		dbStruct, err := db.loadDB()
+		if err != nil {
+			return tokenResponse, err
+		}
+		user, err := db.locateUser(email, dbStruct)
+		if err != nil {
+			return tokenResponse, err
+		}
+		err = ValidatePassword(password, user.Password)
+		if err != nil {
+			return tokenResponse, errors.New("invalid password")
+		}
+		tokenResponse.ID = user.ID
+		tokenResponse.Email = user.Email
+
+		return tokenResponse, nil
+	}
+	return tokenResponse, errors.New("user not found")
+}
+
+func (db *DB) UpdateUser(id int, email, password string) (UserResponse, error) {
 	userResponse := UserResponse{}
 	if db.userID != 1 {
 		dbStruct, err := db.loadDB()
 		if err != nil {
-			return userResponse, err
+			return userResponse, nil
 		}
-		user, err := db.locateUser(email, dbStruct)
+		user := dbStruct.Users[id]
+		user.Email = email
+		hashedPass, err := HashPassword(password)
 		if err != nil {
 			return userResponse, err
 		}
-		err = bcrypt.CompareHashAndPassword(user.Password, []byte(password))
+		user.Password = hashedPass
+		dbStruct.Users[id] = user
+		err = db.writeDB(dbStruct)
 		if err != nil {
-			return userResponse, errors.New("invalid password")
+			return userResponse, err
 		}
-		userResponse.ID = user.ID
-		userResponse.Email = user.Email
+		userResponse.ID = id
+		userResponse.Email = email
 		return userResponse, nil
 	}
 	return userResponse, errors.New("user not found")
