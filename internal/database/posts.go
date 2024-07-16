@@ -1,14 +1,16 @@
 package database
 
 type Post struct {
-	ID   int    `json:"id"`
-	Body string `json:"body"`
+	ID       int    `json:"id"`
+	AuthorID int    `json:"author_id"`
+	Body     string `json:"body"`
 }
 
-func (db *DB) CreatePost(body string) (Post, error) {
+func (db *DB) CreatePost(userID int, body string) (Post, error) {
 	post := Post{
-		ID:   db.postID,
-		Body: body,
+		ID:       db.postID,
+		AuthorID: userID,
+		Body:     body,
 	}
 	var dbStruct DBStructure
 	var err error
