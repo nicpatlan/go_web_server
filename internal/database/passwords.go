@@ -1,6 +1,9 @@
 package database
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,4 +21,14 @@ func ValidatePassword(password string, storedPass []byte) error {
 		return err
 	}
 	return nil
+}
+
+func GenerateRandom() (string, error) {
+	length := 32
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }

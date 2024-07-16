@@ -3,12 +3,15 @@ package database
 import (
 	"errors"
 	"log"
+	"time"
 )
 
 type User struct {
-	ID       int    `json:"id"`
-	Email    string `json:"email"`
-	Password []byte `json:"password"`
+	ID           int       `json:"id"`
+	Email        string    `json:"email"`
+	Password     []byte    `json:"password"`
+	RefreshToken string    `json:"refresh_token"`
+	TokenExpires time.Time `json:"expiration"`
 }
 
 type UserResponse struct {
@@ -17,9 +20,10 @@ type UserResponse struct {
 }
 
 type TokenResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Token string `json:"token"`
+	ID           int    `json:"id"`
+	Email        string `json:"email"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (db *DB) CreateUser(email, password string) (UserResponse, error) {
@@ -79,9 +83,13 @@ func (db *DB) ValidateUserPassword(email, password string) (TokenResponse, error
 		if err != nil {
 			return tokenResponse, errors.New("invalid password")
 		}
+		refreshToken, err := db.UpdateUserRefreshToken(user, dbStruct)
+		if err != nil {
+			return tokenResponse, nil
+		}
 		tokenResponse.ID = user.ID
 		tokenResponse.Email = user.Email
-
+		tokenResponse.RefreshToken = refreshToken
 		return tokenResponse, nil
 	}
 	return tokenResponse, errors.New("user not found")
@@ -113,6 +121,58 @@ func (db *DB) UpdateUser(id int, email, password string) (UserResponse, error) {
 	return userResponse, errors.New("user not found")
 }
 
+func (db *DB) UpdateUserRefreshToken(user User, dbStruct DBStructure) (string, error) {
+	refreshToken, err := GenerateRandom()
+	if err != nil {
+		return "", err
+	}
+	sixtyDays := 60 * 24 * time.Hour
+	expiration := time.Now().UTC().Add(sixtyDays)
+	user.RefreshToken = refreshToken
+	user.TokenExpires = expiration
+	dbStruct.Users[user.ID] = user
+	err = db.writeDB(dbStruct)
+	if err != nil {
+		return "", err
+	}
+	return refreshToken, nil
+}
+
+func (db *DB) ValidateUserRefreshToken(token string) (User, error) {
+	dbStruct, err := db.loadDB()
+	if err != nil {
+		return User{}, err
+	}
+	user, err := db.locateUserRefreshToken(token, dbStruct)
+	if err != nil {
+		return User{}, err
+	}
+	currentTime := time.Now().UTC()
+	if currentTime.After(user.TokenExpires) {
+		return User{}, errors.New("refresh token expired")
+	}
+	return user, nil
+}
+
+func (db *DB) RevokeUserRefreshToken(token string) error {
+	dbStruct, err := db.loadDB()
+	if err != nil {
+		return err
+	}
+	user, err := db.locateUserRefreshToken(token, dbStruct)
+	if err != nil {
+		return err
+	}
+	user.RefreshToken = ""
+	user.TokenExpires = time.Now().UTC()
+	dbStruct.Users[user.ID] = user
+	err = db.writeDB(dbStruct)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) locateUser(email string, dbStruct DBStructure) (User, error) {
 	for idx := 1; idx <= len(dbStruct.Users); idx++ {
 		if dbStruct.Users[idx].Email == email {
@@ -120,4 +180,13 @@ func (db *DB) locateUser(email string, dbStruct DBStructure) (User, error) {
 		}
 	}
 	return User{}, errors.New("email not found")
+}
+
+func (db *DB) locateUserRefreshToken(token string, dbStruct DBStructure) (User, error) {
+	for id := 1; id <= len(dbStruct.Users); id++ {
+		if dbStruct.Users[id].RefreshToken == token {
+			return dbStruct.Users[id], nil
+		}
+	}
+	return User{}, errors.New("invalid refresh token")
 }

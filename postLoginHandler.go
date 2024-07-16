@@ -6,9 +6,10 @@ import (
 )
 
 type TokenResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Token string `json:"token"`
+	ID           int    `json:"id"`
+	Email        string `json:"email"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (aCfg ApiConfig) LoginUserHandlerFunc(wr http.ResponseWriter, req *http.Request) {
@@ -35,7 +36,7 @@ func (aCfg ApiConfig) LoginUserHandlerFunc(wr http.ResponseWriter, req *http.Req
 		return
 	}
 
-	resp.Token, err = GenerateUserToken(resp.ID, userLogin.Expires, aCfg.jwtsecret)
+	resp.Token, err = GenerateUserToken(resp.ID, aCfg.jwtsecret)
 	if err != nil {
 		respondWithError(wr, http.StatusInternalServerError, err.Error())
 		return
