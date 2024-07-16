@@ -33,6 +33,8 @@ func main() {
 	const postUserPattern = "POST /api/users"
 	const putUserPattern = "PUT /api/users"
 	const loginUserPattern = "POST /api/login"
+	const refreshPattern = "POST /api/refresh"
+	const revokePattern = "POST /api/revoke"
 	const port = "8080"
 	const dbPath = "database.json"
 
@@ -62,6 +64,8 @@ func main() {
 	serveMux.HandleFunc(postUserPattern, aCfg.CreateUserHandlerFunc)
 	serveMux.HandleFunc(loginUserPattern, aCfg.LoginUserHandlerFunc)
 	serveMux.HandleFunc(putUserPattern, aCfg.UpdateUserHandlerFunc)
+	serveMux.HandleFunc(refreshPattern, aCfg.RefreshTokenHandlerFunc)
+	serveMux.HandleFunc(revokePattern, aCfg.RevokeTokenHandlerFunc)
 
 	// create server on localhost port 8080
 	server := &http.Server{
