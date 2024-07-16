@@ -20,7 +20,7 @@ func (aCfg *ApiConfig) UpdateUserHandlerFunc(wr http.ResponseWriter, req *http.R
 		decoder.Decode(&userRequest)
 		userResponse, err := aCfg.database.UpdateUser(id, userRequest.Email, userRequest.Password)
 		if err != nil {
-			respondMarshallError(wr, err.Error())
+			respondWithError(wr, http.StatusBadRequest, err.Error())
 			return
 		}
 		respondWithJSON(wr, http.StatusOK, userResponse)

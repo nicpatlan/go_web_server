@@ -16,7 +16,7 @@ func (aCfg *ApiConfig) CreateUserHandlerFunc(wr http.ResponseWriter, req *http.R
 	newUser := UserRequest{}
 	err := decoder.Decode(&newUser)
 	if err != nil {
-		respondMarshallError(wr, err.Error())
+		respondWithError(wr, http.StatusInternalServerError, err.Error())
 		return
 	}
 

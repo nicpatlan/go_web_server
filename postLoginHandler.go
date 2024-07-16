@@ -3,10 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type TokenResponse struct {
@@ -39,25 +35,10 @@ func (aCfg ApiConfig) LoginUserHandlerFunc(wr http.ResponseWriter, req *http.Req
 		return
 	}
 
-	defaultExpiration := 60 * 60 * 24
-	if userLogin.Expires == 0 {
-		userLogin.Expires = defaultExpiration
-	} else if userLogin.Expires > defaultExpiration {
-		userLogin.Expires = defaultExpiration
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    "go_web_app",
-		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Second * time.Duration(userLogin.Expires))),
-		//ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(60*60*24) * time.Second)),
-		IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
-		Subject:  strconv.Itoa(resp.ID),
-	})
-	tokenStr, err := token.SignedString([]byte(aCfg.jwtsecret))
+	resp.Token, err = GenerateUserToken(resp.ID, userLogin.Expires, aCfg.jwtsecret)
 	if err != nil {
 		respondWithError(wr, http.StatusInternalServerError, err.Error())
 		return
 	}
-	resp.Token = tokenStr
 	respondWithJSON(wr, http.StatusOK, resp)
 }
