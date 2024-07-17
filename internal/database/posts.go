@@ -43,14 +43,37 @@ func (db *DB) CreatePost(userID int, body string) (Post, error) {
 	return post, nil
 }
 
-func (db *DB) GetPosts() ([]Post, error) {
+func (db *DB) GetPosts(id int, authorID, asc bool) ([]Post, error) {
 	var posts []Post
 	dbStruct, err := db.loadDB()
 	if err != nil {
 		return posts, err
 	}
-	for key := 1; key < len(dbStruct.Posts)+1; key++ {
-		posts = append(posts, dbStruct.Posts[key])
+	var key int
+	var condition bool
+	if asc {
+		key = 1
+		condition = key <= len(dbStruct.Posts)
+	} else {
+		key = len(dbStruct.Posts)
+		condition = key > 0
+	}
+	for condition {
+		if !authorID {
+			posts = append(posts, dbStruct.Posts[key])
+			if id == key {
+				break
+			}
+		} else if dbStruct.Posts[key].AuthorID == id {
+			posts = append(posts, dbStruct.Posts[key])
+		}
+		if asc {
+			key++
+			condition = key <= len(dbStruct.Posts)
+		} else {
+			key--
+			condition = key > 0
+		}
 	}
 	return posts, nil
 }
