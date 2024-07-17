@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -10,7 +9,7 @@ import (
 func (aCfg *ApiConfig) GetOnePostHandlerFunc(wr http.ResponseWriter, req *http.Request) {
 	postID, err := strconv.Atoi(req.PathValue("id"))
 	if err != nil {
-		log.Printf("Error converting postID: %s", err)
+		respondWithError(wr, http.StatusBadRequest, "Error converting postID")
 		return
 	}
 	posts, err := aCfg.database.GetPosts()

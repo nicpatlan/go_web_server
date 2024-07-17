@@ -16,10 +16,11 @@ func NewDB(path string) (*DB, error) {
 	}
 	mu = sync.RWMutex{}
 	database = DB{
-		path:   path,
-		mu:     &mu,
-		postID: 1,
-		userID: 1,
+		path:      path,
+		mu:        &mu,
+		postID:    1,
+		userID:    1,
+		unusedIDs: make([]int, 0),
 	}
 	return &database, database.ensureDB()
 }
@@ -30,10 +31,11 @@ type DBStructure struct {
 }
 
 type DB struct {
-	path   string
-	mu     *sync.RWMutex
-	postID int
-	userID int
+	path      string
+	mu        *sync.RWMutex
+	postID    int
+	userID    int
+	unusedIDs []int
 }
 
 func (db *DB) ensureDB() error {

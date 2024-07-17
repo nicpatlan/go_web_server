@@ -30,6 +30,7 @@ func main() {
 	const postPattern = "POST /api/posts"
 	const getPattern = "GET /api/posts"
 	const getOnePattern = "GET /api/posts/{id}"
+	const deletePattern = "DELETE /api/posts/{postID}"
 	const postUserPattern = "POST /api/users"
 	const putUserPattern = "PUT /api/users"
 	const loginUserPattern = "POST /api/login"
@@ -66,6 +67,7 @@ func main() {
 	serveMux.HandleFunc(putUserPattern, aCfg.UpdateUserHandlerFunc)
 	serveMux.HandleFunc(refreshPattern, aCfg.RefreshTokenHandlerFunc)
 	serveMux.HandleFunc(revokePattern, aCfg.RevokeTokenHandlerFunc)
+	serveMux.HandleFunc(deletePattern, aCfg.DeletePostHandlerFunc)
 
 	// create server on localhost port 8080
 	server := &http.Server{

@@ -45,7 +45,7 @@ func (db *DB) CreateUser(email, password string) (UserResponse, error) {
 
 	var dbStruct DBStructure
 	var err error
-	if db.userID != 1 {
+	if db.userID != 1 || db.postID != 1 {
 		dbStruct, err = db.loadDB()
 		if err != nil {
 			return userResponse, err
@@ -55,9 +55,10 @@ func (db *DB) CreateUser(email, password string) (UserResponse, error) {
 			return userResponse, errors.New("duplicate email")
 		}
 	} else {
-		dbStruct = DBStructure{
-			Users: make(map[int]User),
-		}
+		dbStruct = DBStructure{}
+	}
+	if db.userID == 1 {
+		dbStruct.Users = make(map[int]User)
 	}
 	dbStruct.Users[db.userID] = user
 	err = db.writeDB(dbStruct)
