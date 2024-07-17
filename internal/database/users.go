@@ -12,11 +12,13 @@ type User struct {
 	Password     []byte    `json:"password"`
 	RefreshToken string    `json:"refresh_token"`
 	TokenExpires time.Time `json:"expiration"`
+	PremiumUser  bool      `json:"premium_user"`
 }
 
 type UserResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID          int    `json:"id"`
+	Email       string `json:"email"`
+	PremiumUser bool   `json:"premium_user"`
 }
 
 type TokenResponse struct {
@@ -24,6 +26,7 @@ type TokenResponse struct {
 	Email        string `json:"email"`
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
+	PremiumUser  bool   `json:"premium_user"`
 }
 
 func (db *DB) CreateUser(email, password string) (UserResponse, error) {
@@ -90,6 +93,7 @@ func (db *DB) ValidateUserPassword(email, password string) (TokenResponse, error
 		}
 		tokenResponse.ID = user.ID
 		tokenResponse.Email = user.Email
+		tokenResponse.PremiumUser = user.PremiumUser
 		tokenResponse.RefreshToken = refreshToken
 		return tokenResponse, nil
 	}
@@ -117,6 +121,7 @@ func (db *DB) UpdateUser(id int, email, password string) (UserResponse, error) {
 		}
 		userResponse.ID = id
 		userResponse.Email = email
+		userResponse.PremiumUser = user.PremiumUser
 		return userResponse, nil
 	}
 	return userResponse, errors.New("user not found")
@@ -167,6 +172,24 @@ func (db *DB) RevokeUserRefreshToken(token string) error {
 	user.RefreshToken = ""
 	user.TokenExpires = time.Now().UTC()
 	dbStruct.Users[user.ID] = user
+	err = db.writeDB(dbStruct)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) UpdateUserPremium(userID int, active bool) error {
+	dbStruct, err := db.loadDB()
+	if err != nil {
+		return err
+	}
+	user, ok := dbStruct.Users[userID]
+	if !ok {
+		return errors.New("invalid userID")
+	}
+	user.PremiumUser = active
+	dbStruct.Users[userID] = user
 	err = db.writeDB(dbStruct)
 	if err != nil {
 		return err

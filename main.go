@@ -13,12 +13,14 @@ type ApiConfig struct {
 	fileserverHits int
 	database       *database.DB
 	jwtsecret      string
+	apikey         string
 }
 
 func main() {
 	// load environment
 	godotenv.Load()
 	jwtsecret := os.Getenv("JWT_SECRET")
+	apikey := os.Getenv("API_KEY")
 
 	// constants
 	const filePattern = "/app/*"
@@ -36,6 +38,7 @@ func main() {
 	const loginUserPattern = "POST /api/login"
 	const refreshPattern = "POST /api/refresh"
 	const revokePattern = "POST /api/revoke"
+	const webhookPattern = "POST /api/polka/webhooks"
 	const port = "8080"
 	const dbPath = "database.json"
 
@@ -52,6 +55,7 @@ func main() {
 		fileserverHits: 0,
 		database:       db,
 		jwtsecret:      jwtsecret,
+		apikey:         apikey,
 	}
 
 	// add handler
@@ -68,6 +72,7 @@ func main() {
 	serveMux.HandleFunc(refreshPattern, aCfg.RefreshTokenHandlerFunc)
 	serveMux.HandleFunc(revokePattern, aCfg.RevokeTokenHandlerFunc)
 	serveMux.HandleFunc(deletePattern, aCfg.DeletePostHandlerFunc)
+	serveMux.HandleFunc(webhookPattern, aCfg.WebhookHandlerFunc)
 
 	// create server on localhost port 8080
 	server := &http.Server{
