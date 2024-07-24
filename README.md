@@ -4,7 +4,7 @@ Includes a basic database stored in JSON at the project root file: database.json
 
 ## Installation & Setup
 Inside a go module:
-> go get github.com/nicpatlan/go_web_server
+>     go get github.com/nicpatlan/go_web_server
 
 The server runs on the localhost port 8080 but can be adjusted in main.go
 
