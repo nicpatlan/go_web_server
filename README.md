@@ -15,7 +15,7 @@ detailed below.
 ### Server Metric Endpoints
 - GET /api/healthz    "returns the server status"
 - GET /admin/metrics  "returns the number of hits the server has received"
--     /api/reset      "resets the counter tracking server hits"
+- /api/reset      "resets the counter tracking server hits"
 
 ### User Endpoints
 The header of a user endpoint http request should follow this pattern:
