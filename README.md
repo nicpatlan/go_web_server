@@ -35,7 +35,7 @@ user has logged in and follow this pattern:
 >     "Authorization": "Bearer example_jwt"
 > }    
 
-The response body of the login endpoint will include a javascript web token or JWT
+The response body of the login endpoint will include a JSON web token or JWT
 used for authentication for a period of 1 hour. This JWT is used for verifying posts
 and updating user information.
 
